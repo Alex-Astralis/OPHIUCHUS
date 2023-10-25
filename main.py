@@ -1,7 +1,7 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QMainWindow, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox,
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QMainWindow, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox,
                              QComboBox, QVBoxLayout, QWidget, QFileDialog, QLabel, QErrorMessage)
-from PyQt6.QtGui import QImage, QPixmap, QResizeEvent
+from PyQt5.QtGui import QImage, QPixmap, QResizeEvent
 import cv2
 import numpy as np
 import math
