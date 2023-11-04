@@ -13,6 +13,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 import pandas as pd
 
+# file imports
+from Image_Resize import nearest_neighbor_im, bilinear_im
 
 class ImageWidget(QLabel):
     def __init__(self, parent=None):
@@ -206,72 +208,7 @@ class MainWindow(QMainWindow):
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
 
-    def nearest_neighbor_im(self, image, width, height):
-        scale_x = width / image.shape[1]
-        scale_y = height / image.shape[0]
-
-        resized_image = np.zeros((height, width, 3), dtype=np.uint8)
-
-        for y in range(height):
-            for x in range(width):
-                # Calculate the corresponding position in the original image
-                src_x = x / scale_x
-                src_y = y / scale_y
-
-                # Find the nearest pixels in the original image
-                x1 = round(src_x)
-                y1 = round(src_y)
-
-                # Ensure the points are within the bounds of the original image
-                x1 = min(max(x1, 0), image.shape[1] - 1)
-                y1 = min(max(y1, 0), image.shape[0] - 1)
-
-                # Perform nearest neighbor interpolation
-                interpolated_value = image[y1, x1]
-
-                # Set the pixel value in the resized image
-                resized_image[y, x] = interpolated_value
-        return resized_image
-
-    def bilinear_im(self, image, width, height):
-        scale_x = width / image.shape[1]
-        scale_y = height / image.shape[0]
-
-        resized_image = np.zeros((height, width, 3), dtype=np.uint8)
-
-        for y in range(height):
-            for x in range(width):
-                # Calculate the corresponding position in the original image
-                src_x = x / scale_x
-                src_y = y / scale_y
-
-                # Find the four nearest pixels in the original image
-                x1 = int(src_x)
-                x2 = x1 + 1
-                y1 = int(src_y)
-                y2 = y1 + 1
-
-                # Ensure the points are within the bounds of the original image
-                x1 = min(max(x1, 0), image.shape[1] - 1)
-                x2 = min(max(x2, 0), image.shape[1] - 1)
-                y1 = min(max(y1, 0), image.shape[0] - 1)
-                y2 = min(max(y2, 0), image.shape[0] - 1)
-
-                # Calculate the interpolation weights
-                weight_x = src_x - x1
-                weight_y = src_y - y1
-
-                # Perform bilinear interpolation
-                interpolated_value = (
-                        (1 - weight_x) * (1 - weight_y) * image[y1, x1] +
-                        weight_x * (1 - weight_y) * image[y1, x2] +
-                        (1 - weight_x) * weight_y * image[y2, x1] +
-                        weight_x * weight_y * image[y2, x2]
-                )
-
-                # Set the pixel value in the resized image
-                resized_image[y, x] = interpolated_value
-        return resized_image
+    
 
     def resize_image(self, image_data, max_img_width, max_img_height):
         scale_percent = min(max_img_width / image_data.shape[1], max_img_height / image_data.shape[0])
@@ -279,11 +216,11 @@ class MainWindow(QMainWindow):
         height = int(image_data.shape[0] * scale_percent)
         newSize = (width, height)
         if self.interpolation_combo_box.currentText() == "Nearest Neighbor":
-            image_resized = self.nearest_neighbor_im(image_data, image_data.shape[1], image_data.shape[0])
+            image_resized = nearest_neighbor_im(image_data, image_data.shape[1], image_data.shape[0])
             #image_resized = cv2.resize(image_data, newSize, None, None, None, cv2.INTER_NEAREST)
             return image_resized
         elif self.interpolation_combo_box.currentText() == "Bilinear":
-            image_resized = self.bilinear_im(image_data, image_data.shape[1], image_data.shape[0])
+            image_resized = bilinear_im(image_data, image_data.shape[1], image_data.shape[0])
             #image_resized = cv2.resize(image_data, newSize, None, None, None, cv2.INTER_LINEAR)
             return image_resized
 
