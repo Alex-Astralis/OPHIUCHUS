@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         # ALEX INSERT END
         ccl_button = QPushButton('CCL')
         self.interpolation_combo_box = QComboBox()
-        self.connectivity_combo_box = QComboBox()
+        self.stacking_combo_box = QComboBox()
         self.foreground_select = QComboBox()
         self.to_result = QCheckBox('Apply to result')
         self.show_histograms = QCheckBox('Show Histograms')
@@ -101,10 +101,9 @@ class MainWindow(QMainWindow):
 
         select_image_button.clicked.connect(self.choose_source_image)
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
+        self.stacking_combo_box.addItems(["Averaging", "Max and Min", "Median", "LRGB",
+                                            "Narrowband", "Sigma"])
         self.foreground_select.addItems(["Foreground is lighter than", "Foreground is darker than"])
-        for btn in [select_image_button, gamma_process_image_button, log_process_image_button]:
-            btn.setFixedHeight(30)
-            btn.setFixedWidth(100)
         self.gamma_c_select = QDoubleSpinBox()
         self.gamma_select = QDoubleSpinBox()
         self.log_c_select = QDoubleSpinBox()
@@ -115,7 +114,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(99.99)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(210)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -125,7 +124,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(3.87)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(180)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -135,7 +134,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(99.99)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(170)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -145,7 +144,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0)
             spinbox.setMaximum(255)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(170)
 
         top_bar_layout.addWidget(select_image_button)
         top_bar_layout.addWidget(self.gamma_c_select)
@@ -161,8 +160,8 @@ class MainWindow(QMainWindow):
         # ALEX CODE INSERT START
         mid_bar_layout.addWidget(red_mask_image_button)
         # ALEX CODE INSERT END
+        mid2_bar_layout.addWidget(self.stacking_combo_box)
         mid2_bar_layout.addWidget(self.interpolation_combo_box)
-        mid2_bar_layout.addWidget(self.connectivity_combo_box)
         mid2_bar_layout.addWidget(ccl_button)
 
         mid3_bar_layout.addWidget(self.to_result)
