@@ -7,6 +7,7 @@ import numpy as np
 import math
 from queue import Queue
 import matplotlib
+
 matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
@@ -33,6 +34,7 @@ class ImageWidget(QLabel):
             except ZeroDivisionError:
                 return 0
 
+
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -40,19 +42,22 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
+
 def resize_image(image_data, max_img_width, max_img_height):
-     scale_percent = min(max_img_width / image_data.shape[1], max_img_height / image_data.shape[0])
-     width = int(image_data.shape[1] * scale_percent)
-     height = int(image_data.shape[0] * scale_percent)
-     newSize = (width, height)
-     image_resized = cv2.resize(image_data, newSize, None, None, None, cv2.INTER_AREA)
-     return image_resized
+    scale_percent = min(max_img_width / image_data.shape[1], max_img_height / image_data.shape[0])
+    width = int(image_data.shape[1] * scale_percent)
+    height = int(image_data.shape[0] * scale_percent)
+    newSize = (width, height)
+    image_resized = cv2.resize(image_data, newSize, None, None, None, cv2.INTER_AREA)
+    return image_resized
+
 
 def pixmap_from_cv_image(cv_image):
     height, width, _ = cv_image.shape
     bytesPerLine = 3 * width
     qImg = QImage(cv_image.data, width, height, bytesPerLine, QImage.Format.Format_RGB888).rgbSwapped()
     return QPixmap(qImg)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -87,9 +92,13 @@ class MainWindow(QMainWindow):
         subtract_image_button = QPushButton('Subtract')
         product_image_button = QPushButton('Product')
         negative_image_button = QPushButton('Negative')
+        # ALEX INSERT BEGIN
+        red_mask_image_button = QPushButton('Red Mask')
+        red_mask_image_button.clicked.connect(self.red_mask)
+        # ALEX INSERT END
         ccl_button = QPushButton('CCL')
         self.interpolation_combo_box = QComboBox()
-        self.connectivity_combo_box = QComboBox()
+        self.stacking_combo_box = QComboBox()
         self.foreground_select = QComboBox()
         self.to_result = QCheckBox('Apply to result')
         self.show_histograms = QCheckBox('Show Histograms')
@@ -107,10 +116,9 @@ class MainWindow(QMainWindow):
         ccl_button.clicked.connect(self.ccl_image)
 
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
+        self.stacking_combo_box.addItems(["Averaging", "Max and Min", "Median", "LRGB",
+                                            "Narrowband", "Sigma"])
         self.foreground_select.addItems(["Foreground is lighter than", "Foreground is darker than"])
-        for btn in [select_image_button, gamma_process_image_button, log_process_image_button]:
-            btn.setFixedHeight(30)
-            btn.setFixedWidth(100)
         self.gamma_c_select = QDoubleSpinBox()
         self.gamma_select = QDoubleSpinBox()
         self.log_c_select = QDoubleSpinBox()
@@ -122,7 +130,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(99.99)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(210)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -132,7 +140,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(3.87)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(180)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -142,7 +150,17 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(99.99)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(170)
+            # setting decimal precision
+            spinbox.setDecimals(2)
+
+        for start_val, prefix, spinbox in zip([0.01], ['Log Base'],
+                                              [self.log_select]):
+            spinbox.setPrefix(f'{prefix}:')
+            spinbox.setMinimum(0.01)
+            spinbox.setMaximum(10.00)
+            spinbox.setValue(start_val)
+            spinbox.setFixedWidth(170)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -162,7 +180,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0)
             spinbox.setMaximum(255)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(170)
 
         top_bar_layout.addWidget(select_image_button)
         top_bar_layout.addWidget(self.gamma_c_select)
@@ -176,9 +194,11 @@ class MainWindow(QMainWindow):
         mid_bar_layout.addWidget(subtract_image_button)
         mid_bar_layout.addWidget(product_image_button)
         mid_bar_layout.addWidget(negative_image_button)
-
+        # ALEX CODE INSERT START
+        mid_bar_layout.addWidget(red_mask_image_button)
+        # ALEX CODE INSERT END
+        mid2_bar_layout.addWidget(self.stacking_combo_box)
         mid2_bar_layout.addWidget(self.interpolation_combo_box)
-        mid2_bar_layout.addWidget(self.connectivity_combo_box)
         mid2_bar_layout.addWidget(ccl_button)
 
         mid3_bar_layout.addWidget(self.to_result)
@@ -213,7 +233,7 @@ class MainWindow(QMainWindow):
 
         source_hist_layout = QVBoxLayout()
         source_hist_layout.addWidget(QLabel("Source Histogram:"))
-        #bottom_bar3_layout.addWidget()
+        # bottom_bar3_layout.addWidget()
 
         result_hist_layout = QVBoxLayout()
         result_hist_layout.addWidget(QLabel("Result Histogram:"))
@@ -257,7 +277,6 @@ class MainWindow(QMainWindow):
         if self.result_image_data is not None:
             result_image_resized = self.resize_image(self.result_image_data, self.max_img_width, self.max_img_height)
             self.result_image.setPixmap(pixmap_from_cv_image(result_image_resized))
-
 
     def choose_source_image(self):
         self.source_filename = QFileDialog.getOpenFileName()[0]
@@ -320,13 +339,25 @@ class MainWindow(QMainWindow):
             if len(filename) > 0:
                 cv2.imwrite(filename, self.result_image_data)
 
+    def red_mask(self):
+        masked_image = np.copy(self.source_image_data)
+        for y in range(self.source_image_data.shape[0]):
+            for x in range(self.source_image_data.shape[1]):
+                red_value = self.source_image_data[y, x, 0]
+                mask_value = 255 - red_value
+                masked_image[y, x, 0] = mask_value
+                masked_image[y, x, 1] = mask_value
+                masked_image[y, x, 2] = mask_value
+        self.source_image.setPixmap(pixmap_from_cv_image(masked_image))
+
 def run_app():
     app = QApplication(sys.argv)
 
     window = MainWindow()
     window.show()
-
     app.exec()
+
+
 
 if __name__ == '__main__':
     run_app()
