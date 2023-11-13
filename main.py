@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
             spinbox.setMinimum(0.01)
             spinbox.setMaximum(10.00)
             spinbox.setValue(start_val)
-            spinbox.setFixedWidth(130)
+            spinbox.setFixedWidth(170)
             # setting decimal precision
             spinbox.setDecimals(2)
 
@@ -286,45 +286,100 @@ class MainWindow(QMainWindow):
 
     ## Cassie Code Start ##
     def add_images(self):
-        if self.source_image_data is None or self.additional_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_add(self.source_image_data, self.additional_image_data)
+        if self.to_result.isChecked():
+            image_1 = self.result_image_data
+            image_2 = self.source_image_data
+        else:
+            image_1 = self.source_image_data
+            image_2 = self.additional_image_data
+        if image_1 is None or image_2 is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_add(image_1, image_2)
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
 
     def subtract_images(self):
-        if self.source_image_data is None or self.additional_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_sub(self.source_image_data, self.additional_image_data)
+        if self.to_result.isChecked():
+            image_1 = self.result_image_data
+            image_2 = self.source_image_data
+        else:
+            image_1 = self.source_image_data
+            image_2 = self.additional_image_data
+        if image_1 is None or image_2 is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_sub(image_1, image_2)
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     
     def multiply_images(self):
-        if self.source_image_data is None or self.additional_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_mult(self.source_image_data, self.additional_image_data)
+        if self.to_result.isChecked():
+            image_1 = self.result_image_data
+            image_2 = self.source_image_data
+        else:
+            image_1 = self.source_image_data
+            image_2 = self.additional_image_data
+        if image_1 is None or image_2 is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_mult(image_1, image_2)
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     
     def negate_image(self):
-        if self.source_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_negative(self.source_image_data)
+        if self.to_result.isChecked():
+            image_data = self.result_image_data
+        else:
+            image_data = self.source_image_data
+        if image_data is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_negative(image_data)
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     
     def log_image(self):
-        if self.source_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_log(self.source_image_data, self.log_c_select.value(), self.log_select.value())
+        if self.to_result.isChecked():
+            image_data = self.result_image_data
+        else:
+            image_data = self.source_image_data
+        if image_data is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_log(image_data, self.log_c_select.value(), self.log_select.value())
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     
     def gamma_image(self):
-        if self.source_image_data is None:
-            return # maybe display an error message?
-        self.result_image_data = IM_MAT.im_gamma(self.source_image_data, self.gamma_c_select.value(), self.gamma_select.value())
+        if self.to_result.isChecked():
+            image_data = self.result_image_data
+        else:
+            image_data = self.source_image_data
+        if image_data is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_image_data = IM_MAT.im_gamma(image_data, self.gamma_c_select.value(), self.gamma_select.value())
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     
     def ccl_image(self):
-        if self.source_image_data is None:
-            return # maybe display an error message?
-        self.result_ccl_labels = IM_LABEL.better_ccl(self.source_image_data)
+        if self.to_result.isChecked():
+            image_data = self.result_image_data
+        else:
+            image_data = self.source_image_data
+        if image_data is None:
+            error_dialog = QErrorMessage()
+            error_dialog.showMessage('Missing Image Data')
+            error_dialog.exec()
+            return
+        self.result_ccl_labels = IM_LABEL.better_ccl(image_data)
         self.result_image_data = IM_LABEL.labels_to_image(self.result_ccl_labels) # REPLACE LATER
         self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
     ## Cassie Code End ##

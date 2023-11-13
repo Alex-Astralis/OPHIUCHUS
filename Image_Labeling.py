@@ -4,14 +4,13 @@ import numpy as np
 def label_cluster(image_dat, labels, label_num, check_pixel, x0, y0, background):
     height = get_height(image_dat)
     width = get_width(image_dat)
+    labels[y0, x0] = label_num
     to_visit = []
     to_visit.append([x0, y0])
     while len(to_visit) != 0:
         indx = to_visit.pop()
         x0 = indx[0]
         y0 = indx[1]
-        if np.array_equal(image_dat[y0, x0], check_pixel):
-            labels[y0, x0] = label_num
         yi = -1
         while yi <= 1:
             xi = -1
@@ -50,7 +49,7 @@ def better_ccl(image_dat, background=None):
                 continue
             curr_pix = image_dat[y, x]
             if np.array_equal(curr_pix, background):
-                xi += 1
+                x += 1
                 continue
             labels = label_cluster(image_dat, labels, curr_label, curr_pix, x, y, background)
             curr_label += 1
@@ -58,7 +57,7 @@ def better_ccl(image_dat, background=None):
         y += 1
     return labels
 
-def labels_to_image(labels, max_value):
+def labels_to_image(labels, max_value=255):
     width = get_width(labels)
     height = get_height(labels)
     new_image = np.zeros([height, width, 3], dtype=np.uint8)
