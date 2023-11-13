@@ -15,6 +15,8 @@ import pandas as pd
 
 # file imports
 from Image_Resize import nearest_neighbor_im, bilinear_im
+import Image_Math as IM_MAT
+import Image_Labeling as IM_LABEL
 
 class ImageWidget(QLabel):
     def __init__(self, parent=None):
@@ -70,6 +72,7 @@ class MainWindow(QMainWindow):
         self.additional_filename = None
         self.additional_image_data = None
         self.result_image_data = None
+        self.result_ccl_labels = None
         self.threshold = 120 # Threshold set to a little darker than 255/2
         self.max_img_height = 400
         self.max_img_width = 600
@@ -92,7 +95,17 @@ class MainWindow(QMainWindow):
         self.show_histograms = QCheckBox('Show Histograms')
         histogram_equal = QPushButton("Histogram Equalization")
 
+        # Button Connections #
         select_image_button.clicked.connect(self.choose_source_image)
+        gamma_process_image_button.clicked.connect(self.gamma_image)
+        log_process_image_button.clicked.connect(self.log_image)
+
+        add_image_button.clicked.connect(self.add_images)
+        subtract_image_button.clicked.connect(self.subtract_images)
+        product_image_button.clicked.connect(self.multiply_images)
+        negative_image_button.clicked.connect(self.negate_image)
+        ccl_button.clicked.connect(self.ccl_image)
+
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
         self.foreground_select.addItems(["Foreground is lighter than", "Foreground is darker than"])
         for btn in [select_image_button, gamma_process_image_button, log_process_image_button]:
@@ -101,6 +114,7 @@ class MainWindow(QMainWindow):
         self.gamma_c_select = QDoubleSpinBox()
         self.gamma_select = QDoubleSpinBox()
         self.log_c_select = QDoubleSpinBox()
+        self.log_select = QDoubleSpinBox()
         self.threshold_select = QSpinBox()
         for start_val, prefix, spinbox in zip([99.99], ['Gamma C'],
                                               [self.gamma_c_select]):
@@ -132,6 +146,16 @@ class MainWindow(QMainWindow):
             # setting decimal precision
             spinbox.setDecimals(2)
 
+        for start_val, prefix, spinbox in zip([0.01], ['Log Base'],
+                                              [self.log_select]):
+            spinbox.setPrefix(f'{prefix}:')
+            spinbox.setMinimum(0.01)
+            spinbox.setMaximum(10.00)
+            spinbox.setValue(start_val)
+            spinbox.setFixedWidth(130)
+            # setting decimal precision
+            spinbox.setDecimals(2)
+
         for start_val, prefix, spinbox in zip([120], ['Threshold'],
                                               [self.threshold_select]):
             spinbox.setPrefix(f'{prefix}:')
@@ -144,6 +168,7 @@ class MainWindow(QMainWindow):
         top_bar_layout.addWidget(self.gamma_c_select)
         top_bar_layout.addWidget(self.gamma_select)
         top_bar_layout.addWidget(self.log_c_select)
+        top_bar_layout.addWidget(self.log_select)
         top_bar_layout.addWidget(gamma_process_image_button)
         top_bar_layout.addWidget(log_process_image_button)
 
@@ -240,7 +265,50 @@ class MainWindow(QMainWindow):
         source_image_resized = resize_image(self.source_image_data, self.max_img_width, self.max_img_height)
         self.source_image.setPixmap(pixmap_from_cv_image(source_image_resized))
 
+    ## Cassie Code Start ##
+    def add_images(self):
+        if self.source_image_data is None or self.additional_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_add(self.source_image_data, self.additional_image_data)
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
 
+    def subtract_images(self):
+        if self.source_image_data is None or self.additional_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_sub(self.source_image_data, self.additional_image_data)
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    
+    def multiply_images(self):
+        if self.source_image_data is None or self.additional_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_mult(self.source_image_data, self.additional_image_data)
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    
+    def negate_image(self):
+        if self.source_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_negative(self.source_image_data)
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    
+    def log_image(self):
+        if self.source_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_log(self.source_image_data, self.log_c_select.value(), self.log_select.value())
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    
+    def gamma_image(self):
+        if self.source_image_data is None:
+            return # maybe display an error message?
+        self.result_image_data = IM_MAT.im_gamma(self.source_image_data, self.gamma_c_select.value(), self.gamma_select.value())
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    
+    def ccl_image(self):
+        if self.source_image_data is None:
+            return # maybe display an error message?
+        self.result_ccl_labels = IM_LABEL.better_ccl(self.source_image_data)
+        self.result_image_data = IM_LABEL.labels_to_image(self.result_ccl_labels) # REPLACE LATER
+        self.result_image.setPixmap(pixmap_from_cv_image(self.result_image_data))
+    ## Cassie Code End ##
 
     def save_as_file(self):
         if self.result_image_data is None:
@@ -252,10 +320,13 @@ class MainWindow(QMainWindow):
             if len(filename) > 0:
                 cv2.imwrite(filename, self.result_image_data)
 
+def run_app():
+    app = QApplication(sys.argv)
 
-app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
 
-window = MainWindow()
-window.show()
+    app.exec()
 
-app.exec()
+if __name__ == '__main__':
+    run_app()

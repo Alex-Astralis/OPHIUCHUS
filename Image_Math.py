@@ -5,10 +5,10 @@ from Image_Resize import match_size
 import math
 import sys
 
-# everything here assumes that passed in values match [0, max_bit)
+# everything here assumes that passed in values match [0, max_value]
 
-def im_add(image_1, image_2, max_bit):
-    re_image_1, re_image_2 = match_size(image_1, image_2)
+def im_add(image_1, image_2, resize_priority=None, max_value=255):
+    re_image_1, re_image_2 = match_size(image_1, image_2, resize_priority)
 
     width = get_width(re_image_1)
     height = get_height(re_image_1)
@@ -21,13 +21,13 @@ def im_add(image_1, image_2, max_bit):
             pixel = np.copy(re_image_1[y, x] + re_image_2[y, x])
 
             # clamp and save
-            new_img[y, x] = clamp_pixel(pixel, 0, max_bit)
+            new_img[y, x] = clamp_pixel(pixel, 0, max_value)
             y += 1
         x += 1
     return new_img
 
-def im_sub(image_1, image_2, max_bit):
-    re_image_1, re_image_2 = match_size(image_1, image_2)
+def im_sub(image_1, image_2, resize_priority=None, max_value=255):
+    re_image_1, re_image_2 = match_size(image_1, image_2, resize_priority)
 
     width = get_width(re_image_1)
     height = get_height(re_image_1)
@@ -40,13 +40,13 @@ def im_sub(image_1, image_2, max_bit):
             pixel = np.copy(re_image_1[y, x] - re_image_2[y, x])
 
             # clamp and save
-            new_img[y, x] = clamp_pixel(pixel, 0, max_bit)
+            new_img[y, x] = clamp_pixel(pixel, 0, max_value)
             y += 1
         x += 1
     return new_img
 
-def im_mult(image_1, image_2, max_bit):
-    re_image_1, re_image_2 = match_size(image_1, image_2)
+def im_mult(image_1, image_2, resize_priority=None, max_value=255):
+    re_image_1, re_image_2 = match_size(image_1, image_2, resize_priority)
 
     width = get_width(re_image_1)
     height = get_height(re_image_1)
@@ -59,12 +59,12 @@ def im_mult(image_1, image_2, max_bit):
             pixel = np.copy(re_image_1[y, x] * re_image_2[y, x])
 
             # clamp and save
-            new_img[y, x] = clamp_pixel(pixel, 0, max_bit)
+            new_img[y, x] = clamp_pixel(pixel, 0, max_value)
             y += 1
         x += 1
     return new_img
 
-def im_negative(image, max_bit):
+def im_negative(image, max_value=255):
     width = get_width(image)
     height = get_height(image)
     new_img = np.zeros([height, width, 3], dtype=np.uint8)
@@ -73,12 +73,12 @@ def im_negative(image, max_bit):
     while x < width:
         y = 0
         while y < height:
-            new_img[y, x] = (max_bit - 1) - image[y, x]
+            new_img[y, x] = (max_value - 1) - image[y, x]
             y += 1
         x += 1
     return new_img
 
-def im_log(image, max_bit, constant, base):
+def im_log(image, constant, base, max_value=255):
     width = get_width(image)
     height = get_height(image)
     new_img = np.zeros([height, width, 3], dtype=np.uint8)
@@ -92,12 +92,12 @@ def im_log(image, max_bit, constant, base):
             pixel[1] = int(constant * math.log(float(1 + pixel[1]), base))
             pixel[2] = int(constant * math.log(float(1 + pixel[2]), base))
 
-            new_img[y, x] = clamp_pixel(pixel, 0, max_bit)
+            new_img[y, x] = clamp_pixel(pixel, 0, max_value)
             y += 1
         x += 1
     return new_img
 
-def im_pow(image, max_bit, constant, exponent):
+def im_gamma(image, constant, exponent, max_value=255):
     width = get_width(image)
     height = get_height(image)
     new_img = np.zeros([height, width, 3], dtype=np.uint8)
@@ -121,7 +121,7 @@ def im_pow(image, max_bit, constant, exponent):
             pixel[1] = int(constant * math.pow(float(pixel[1]) + offset[1], exponent))
             pixel[2] = int(constant * math.pow(float(pixel[2]) + offset[2], exponent))
 
-            new_img[y, x] = clamp_pixel(pixel, 0, max_bit)
+            new_img[y, x] = clamp_pixel(pixel, 0, max_value)
             y += 1
         x += 1
     return new_img

@@ -71,9 +71,10 @@ def bilinear_im(image, width, height):
     return resized_image
 
 # resize one or both images to match a common size
-# priority: if 1 or 2, resizes the other image to be 
-#           the same size as the priority image, otherwise
-#           resize both to the max size of the two images
+# priority:
+# - None: resize both to the max dimentions from both images
+# - 1   : keep image 1 the same, resize image 2 to the same dimentions as image 1
+# - 2   : keep image 2 the same, resize image 1 to the same dimentions as image 2
 def match_size(image_1, image_2, priority=None):
     height_1 = get_height(image_1)
     width_1 = get_width(image_1)
