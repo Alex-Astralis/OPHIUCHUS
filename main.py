@@ -13,6 +13,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import pandas as pd
+import glob
 
 # file imports
 from Image_Resize import nearest_neighbor_im, bilinear_im
@@ -84,6 +85,7 @@ class MainWindow(QMainWindow):
         self.histogram_df = pd.DataFrame()
         self.histogram_canvas1 = MplCanvas(self, width=5, height=4, dpi=100)
         self.histogram_canvas2 = MplCanvas(self, width=5, height=4, dpi=100)
+        self.folder_files = None
 
         select_image_button = QPushButton('Select Image')
         gamma_process_image_button = QPushButton('Process Gamma')
@@ -103,6 +105,7 @@ class MainWindow(QMainWindow):
         self.to_result = QCheckBox('Apply to result')
         self.show_histograms = QCheckBox('Show Histograms')
         histogram_equal = QPushButton("Histogram Equalization")
+        stacking_button = QPushButton('Stack')
 
         # Button Connections #
         select_image_button.clicked.connect(self.choose_source_image)
@@ -114,6 +117,7 @@ class MainWindow(QMainWindow):
         product_image_button.clicked.connect(self.multiply_images)
         negative_image_button.clicked.connect(self.negate_image)
         ccl_button.clicked.connect(self.ccl_image)
+        stacking_button.clicked.connect(self.choose_folder)
 
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
         self.stacking_combo_box.addItems(["Averaging", "Max and Min", "Median", "LRGB",
@@ -202,6 +206,7 @@ class MainWindow(QMainWindow):
         mid2_bar_layout.addWidget(ccl_button)
 
         mid3_bar_layout.addWidget(self.to_result)
+        mid3_bar_layout.addWidget(stacking_button)
         mid3_bar_layout.addWidget(self.foreground_select)
         mid3_bar_layout.addWidget(self.threshold_select)
 
@@ -277,6 +282,13 @@ class MainWindow(QMainWindow):
         if self.result_image_data is not None:
             result_image_resized = self.resize_image(self.result_image_data, self.max_img_width, self.max_img_height)
             self.result_image.setPixmap(pixmap_from_cv_image(result_image_resized))
+
+    def choose_folder(self):
+        dir = QFileDialog.getExistingDirectory(caption="Open Directory", directory="./", options=QFileDialog.ShowDirsOnly)
+        self.folder_files = glob.glob(dir + "*/*")
+        # test
+        for file in self.folder_files:
+            print(file)
 
     def choose_source_image(self):
         self.source_filename = QFileDialog.getOpenFileName()[0]
