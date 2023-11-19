@@ -19,6 +19,7 @@ import glob
 from Image_Resize import nearest_neighbor_im, bilinear_im
 import Image_Math as IM_MAT
 import Image_Labeling as IM_LABEL
+import Image_Stacking as IM_STACK
 
 class ImageWidget(QLabel):
     def __init__(self, parent=None):
@@ -284,11 +285,34 @@ class MainWindow(QMainWindow):
             self.result_image.setPixmap(pixmap_from_cv_image(result_image_resized))
 
     def choose_folder(self):
-        dir = QFileDialog.getExistingDirectory(caption="Open Directory", directory="./", options=QFileDialog.ShowDirsOnly)
-        self.folder_files = glob.glob(dir + "*/*")
+        dir = QFileDialog.getExistingDirectory(caption="Open Directory", directory="./",
+                                               options=QFileDialog.ShowDirsOnly)
+        fits_glob_pattern = "*.fits"
+        #self.folder_files = glob.glob(dir + "*/*")
+
         # test
-        for file in self.folder_files:
-            print(file)
+        # for file in self.folder_files:
+        #     print(file)
+
+        # ZZZ
+        if self.stacking_combo_box.currentText() == "Averaging":
+            pass
+
+        elif self.stacking_combo_box.currentText() == "Max and Min":
+            pass
+
+        elif self.stacking_combo_box.currentText() == "Median":
+            stacked_image = IM_STACK.median_stack_fits_glob(fits_glob_pattern, dir)
+            self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
+
+        elif self.stacking_combo_box.currentText() == "LRGB":
+            pass
+
+        elif self.stacking_combo_box.currentText() == "Narrowband":
+            pass
+
+        elif self.stacking_combo_box.currentText() == "Sigma":
+            pass
 
     def choose_source_image(self):
         self.source_filename = QFileDialog.getOpenFileName()[0]
@@ -407,7 +431,7 @@ class MainWindow(QMainWindow):
                 cv2.imwrite(filename, self.result_image_data)
 
     def red_mask(self):
-        masked_image = np.copy(self.source_image_data)
+        masked_image = np.copy(self.source_image_data)    #ZZZ
         for y in range(self.source_image_data.shape[0]):
             for x in range(self.source_image_data.shape[1]):
                 red_value = self.source_image_data[y, x, 0]
