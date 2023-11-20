@@ -302,7 +302,7 @@ class MainWindow(QMainWindow):
             pass
 
         elif self.stacking_combo_box.currentText() == "Median":
-            stacked_image = IM_STACK.median_stack_fits_glob(fits_glob_pattern, dir)
+            stacked_image = IM_STACK.median_stack(fits_glob_pattern, dir)
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "LRGB":
