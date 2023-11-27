@@ -296,7 +296,8 @@ class MainWindow(QMainWindow):
 
         # ZZZ
         if self.stacking_combo_box.currentText() == "Averaging":
-            pass
+            stacked_image = IM_STACK.ave_stack(fits_glob_pattern, dir)
+            self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "Max and Min":
             pass
