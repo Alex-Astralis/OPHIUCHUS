@@ -1,4 +1,36 @@
 import numpy as np
+import cv2
+
+# ave = ave + (sample - ave) / (sample count)
+def ave_stack(paths):
+    reference_data = cv2.imread(paths[0])
+    ref_width = get_width(reference_data)
+    ref_height = get_height(reference_data)
+    new_image = np.zeros([ref_height, ref_width, 3], dtype=np.float32) # allow floating point values untill after processing
+    processed_images = 0
+    for path in paths:
+        curr_image_data = cv2.imread(path)
+        curr_width = get_width(curr_image_data)
+        curr_height = get_height(curr_image_data)
+        
+        y = 0
+        while y < ref_height:
+            curr_y = y
+            if curr_y >= curr_height:
+                curr_y = curr_height - 1
+            x = 0
+            while x < ref_width:
+                curr_x = x
+                if curr_x >= curr_width:
+                    curr_x = curr_width - 1
+                
+                new_image[y, x] = new_image[y, x] + (curr_image_data[curr_y, curr_x] - new_image[y, x]) / (processed_images + 1)
+                x += 1
+            y += 1
+        processed_images += 1
+
+    new_image.astype(np.uint8)
+    return new_image
 import os
 from astropy.io import fits
 import glob
