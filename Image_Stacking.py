@@ -50,8 +50,59 @@ def median_stack(glob_pattern: str, folder_path: str) -> np.ndarray:
     else:
         raise ValueError("No valid images found using the provided glob pattern.")
 
-# Example usage:
-# glob_pattern = "*.fits"
-# folder_path = "/path/to/images"
-# result = median_stack_fits_glob_single_load(glob_pattern, folder_path)
-# Display or save the result as needed
+
+def sigma_stacking(glob_pattern, folder_path: str, sigma_threshold=2) -> np.ndarray:
+    """
+    Performs Sigma Stacking on a list of .fits files matching a glob pattern.
+
+    :param folder_path:
+    :param glob_pattern: Glob pattern to match .fits files.
+    :param sigma_threshold: Number of standard deviations for sigma clipping.
+    :return: A numpy array representing the stacked image.
+    """
+    # Generate list of .fits files
+    image_filenames = glob.glob(os.path.join(folder_path, glob_pattern))
+
+    # Initialize variables for mean, standard deviation, and count
+    mean_image = None
+    std_image = None
+    count = 0
+
+    for filename in image_filenames:
+        # Load .fits file and convert to numpy array
+        with fits.open(filename) as hdul:
+            img_data = hdul[0].data
+            if img_data.ndim == 2:  # Single channel (grayscale)
+                img_data = np.stack((img_data,)*3, axis=-1)  # Duplicate to 3 channels
+            img_array = img_data.astype(np.float64)
+
+            # Initialize mean and std images if it's the first image
+            if mean_image is None:
+                mean_image = np.zeros_like(img_array, dtype=np.float64)
+                std_image = np.zeros_like(img_array, dtype=np.float64)
+
+            # Update mean and standard deviation
+            mean_image = (mean_image * count + img_array) / (count + 1)
+            std_image = np.sqrt(((std_image**2 * count) + (img_array - mean_image)**2) / (count + 1))
+
+            count += 1
+
+    # Sigma clipping and final mean calculation
+    final_image = np.zeros_like(mean_image, dtype=np.float64)
+    count = 0
+
+    for filename in image_filenames:
+        # Load .fits file again
+        with fits.open(filename) as hdul:
+            img_data = hdul[0].data
+            if img_data.ndim == 2:  # Single channel (grayscale)
+                img_data = np.stack((img_data,)*3, axis=-1)  # Duplicate to 3 channels
+            img_array = img_data.astype(np.float64)
+
+            # Apply sigma clipping
+            mask = np.abs(img_array - mean_image) < (sigma_threshold * std_image)
+            final_image = (final_image * count + img_array * mask) / (count + 1)
+            count += 1
+
+    # Return the final stacked image
+    return final_image.astype(np.uint8)

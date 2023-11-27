@@ -312,7 +312,8 @@ class MainWindow(QMainWindow):
             pass
 
         elif self.stacking_combo_box.currentText() == "Sigma":
-            pass
+            stacked_image = IM_STACK.sigma_stacking(fits_glob_pattern, dir)
+            self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
     def choose_source_image(self):
         self.source_filename = QFileDialog.getOpenFileName()[0]
