@@ -145,3 +145,65 @@ def sigma_stacking(glob_pattern, folder_path: str, sigma_threshold=2) -> np.ndar
 
     # Return the final stacked image
     return final_image.astype(np.uint8)
+
+def max_image_stack_fits(glob_pattern: str, folder_path: str) -> np.ndarray:
+    """
+    Performs max image stacking on a list of FITS images.
+
+    :param image_filenames: List of FITS image filenames to be stacked.
+    :return: A numpy array representing the stacked image.
+    """
+    image_filenames = glob.glob(os.path.join(folder_path, glob_pattern))
+
+    # Initialize the max stacked image as None
+    max_stacked_image = None
+
+    for filename in image_filenames:
+        # Open the current FITS file
+        with fits.open(filename) as hdul:
+            # Convert the FITS data to a numpy array and scale to 8-bit (0-255)
+            # Assuming the FITS file has a single image in its primary HDU
+            current_image = hdul[0].data
+            current_image_scaled = (current_image / np.max(current_image) * 255).astype(np.uint8)
+
+            image = np.stack([current_image_scaled] * 3, axis=-1)
+
+            if max_stacked_image is None:
+                # For the first image, just set it as the initial max stacked image
+                max_stacked_image = image
+            else:
+                # Perform max operation across all channels
+                max_stacked_image = np.maximum(max_stacked_image, image)
+
+    return max_stacked_image
+
+def min_image_stack_fits(glob_pattern: str, folder_path: str) -> np.ndarray:
+    """
+    Performs max image stacking on a list of FITS images.
+
+    :param image_filenames: List of FITS image filenames to be stacked.
+    :return: A numpy array representing the stacked image.
+    """
+    image_filenames = glob.glob(os.path.join(folder_path, glob_pattern))
+
+    # Initialize the max stacked image as None
+    min_stacked_image = None
+
+    for filename in image_filenames:
+        # Open the current FITS file
+        with fits.open(filename) as hdul:
+            # Convert the FITS data to a numpy array and scale to 8-bit (0-255)
+            # Assuming the FITS file has a single image in its primary HDU
+            current_image = hdul[0].data
+            current_image_scaled = (current_image / np.max(current_image) * 255).astype(np.uint8)
+
+            image = np.stack([current_image_scaled] * 3, axis=-1)
+
+            if min_stacked_image is None:
+                # For the first image, just set it as the initial max stacked image
+                min_stacked_image = image
+            else:
+                # Perform max operation across all channels
+                min_stacked_image = np.minimum(min_stacked_image, image)
+
+    return min_stacked_image

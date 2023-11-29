@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
         stacking_button.clicked.connect(self.choose_folder)
 
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
-        self.stacking_combo_box.addItems(["Averaging", "Max and Min", "Median", "LRGB",
+        self.stacking_combo_box.addItems(["Averaging", "Max", "Min", "Median", "LRGB",
                                             "Narrowband", "Sigma"])
         self.foreground_select.addItems(["Foreground is lighter than", "Foreground is darker than"])
         self.gamma_c_select = QDoubleSpinBox()
@@ -299,8 +299,13 @@ class MainWindow(QMainWindow):
             stacked_image = IM_STACK.ave_stack(fits_glob_pattern, dir)
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
-        elif self.stacking_combo_box.currentText() == "Max and Min":
-            pass
+        elif self.stacking_combo_box.currentText() == "Max":
+            stacked_image = IM_STACK.max_image_stack_fits(fits_glob_pattern, dir)
+            self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
+
+        elif self.stacking_combo_box.currentText() == "Min":
+            stacked_image = IM_STACK.min_image_stack_fits(fits_glob_pattern, dir)
+            self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "Median":
             stacked_image = IM_STACK.median_stack(fits_glob_pattern, dir)
