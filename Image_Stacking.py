@@ -8,7 +8,9 @@ from Helpers import get_height, get_width
 # ave = ave + (sample - ave) / (sample count)
 def ave_stack(glob_pattern: str, folder_path: str):
     image_filenames = glob.glob(os.path.join(folder_path, glob_pattern))
-    reference_data = cv2.imread(image_filenames[0])
+    reference_data = None
+    with fits.open(image_filenames[0]) as hdul:
+        reference_data = hdul[0].data
     ref_width = get_width(reference_data)
     ref_height = get_height(reference_data)
     new_image = np.zeros([ref_height, ref_width, 3], dtype=np.float32) # allow floating point values untill after processing
