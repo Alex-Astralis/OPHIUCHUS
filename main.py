@@ -20,6 +20,7 @@ from Image_Resize import nearest_neighbor_im, bilinear_im
 import Image_Math as IM_MAT
 import Image_Labeling as IM_LABEL
 import Image_Stacking as IM_STACK
+import Image_Align as IM_ALIGN
 
 class ImageWidget(QLabel):
     def __init__(self, parent=None):
@@ -95,10 +96,8 @@ class MainWindow(QMainWindow):
         subtract_image_button = QPushButton('Subtract')
         product_image_button = QPushButton('Product')
         negative_image_button = QPushButton('Negative')
-        # ALEX INSERT BEGIN
         red_mask_image_button = QPushButton('Red Mask')
         red_mask_image_button.clicked.connect(self.red_mask)
-        # ALEX INSERT END
         ccl_button = QPushButton('CCL')
         self.interpolation_combo_box = QComboBox()
         self.stacking_combo_box = QComboBox()
@@ -107,6 +106,7 @@ class MainWindow(QMainWindow):
         self.show_histograms = QCheckBox('Show Histograms')
         histogram_equal = QPushButton("Histogram Equalization")
         stacking_button = QPushButton('Stack')
+        align_button = QPushButton('Align')
 
         # Button Connections #
         select_image_button.clicked.connect(self.choose_source_image)
@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
         product_image_button.clicked.connect(self.multiply_images)
         negative_image_button.clicked.connect(self.negate_image)
         ccl_button.clicked.connect(self.ccl_image)
+        align_button.clicked.connect(self.choose_folder_align)
         stacking_button.clicked.connect(self.choose_folder)
 
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
@@ -207,6 +208,7 @@ class MainWindow(QMainWindow):
         mid2_bar_layout.addWidget(ccl_button)
 
         mid3_bar_layout.addWidget(self.to_result)
+        mid3_bar_layout.addWidget(align_button)
         mid3_bar_layout.addWidget(stacking_button)
         mid3_bar_layout.addWidget(self.foreground_select)
         mid3_bar_layout.addWidget(self.threshold_select)
@@ -320,6 +322,11 @@ class MainWindow(QMainWindow):
         elif self.stacking_combo_box.currentText() == "Sigma":
             stacked_image = IM_STACK.sigma_stacking(fits_glob_pattern, dir)
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
+
+    def choose_folder_align(self):
+        dir = QFileDialog.getExistingDirectory(caption="Open Directory", directory="./",
+                                               options=QFileDialog.ShowDirsOnly)
+        IM_ALIGN.align_images(dir)
 
     def choose_source_image(self):
         self.source_filename = QFileDialog.getOpenFileName()[0]
