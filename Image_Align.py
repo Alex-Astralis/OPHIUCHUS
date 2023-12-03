@@ -29,16 +29,36 @@ def align_images(input_directory):
             criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1e-6)
             _, warp_matrix = cv2.findTransformECC(reference_image, image, warp_matrix, cv2.MOTION_TRANSLATION, criteria)
 
-            aligned_image = cv2.warpAffine(image, warp_matrix, (image.shape[1], image.shape[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+            # Check if the transformation matrix is close to the identity matrix
+            epsilon = 0.001
+            if np.linalg.norm(warp_matrix - np.eye(2, 3, dtype=np.float32)) < epsilon:
+                print("Images are uncorrelated or non-overlapped.")
+            else:
+                aligned_image = cv2.warpAffine(image, warp_matrix, (image.shape[1], image.shape[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
 
-            output_file_path = os.path.join(output_directory, os.path.basename(file))
-            fits.writeto(output_file_path, aligned_image, overwrite=True)
+                output_file_path = os.path.join(output_directory, os.path.basename(file))
+                fits.writeto(output_file_path, aligned_image, overwrite=True)
         except Exception as e:
             print(f"Error processing {file}: {e}")
         finally:
             # Free memory
-            del image_data, image, aligned_image
-            gc.collect()
+            try:
+                del image_data, image, aligned_image
+                gc.collect()
+            except:
+                try:
+                    del image_data, image
+                    gc.collect()
+                except:
+                    try:
+                        del image
+                        gc.collect()
+                    except:
+                        try:
+                            del image_data
+                            gc.collect()
+                        except:
+                            continue
 
     print(f"Aligned images saved in {output_directory}")
 
