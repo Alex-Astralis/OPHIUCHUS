@@ -122,8 +122,7 @@ class MainWindow(QMainWindow):
         stacking_button.clicked.connect(self.choose_folder)
 
         self.interpolation_combo_box.addItems(["Nearest Neighbor", "Bilinear"])
-        self.stacking_combo_box.addItems(["Averaging", "Max", "Min", "Median", "LRGB",
-                                            "Narrowband", "Sigma"])
+        self.stacking_combo_box.addItems(["Averaging", "Max", "Min", "Median", "Sigma"])
         self.foreground_select.addItems(["Foreground is lighter than", "Foreground is darker than"])
         self.gamma_c_select = QDoubleSpinBox()
         self.gamma_select = QDoubleSpinBox()
@@ -299,28 +298,27 @@ class MainWindow(QMainWindow):
         # ZZZ
         if self.stacking_combo_box.currentText() == "Averaging":
             stacked_image = IM_STACK.ave_stack(fits_glob_pattern, dir)
+            self.source_image_data = stacked_image
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "Max":
             stacked_image = IM_STACK.max_image_stack_fits(fits_glob_pattern, dir)
+            self.source_image_data = stacked_image
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "Min":
             stacked_image = IM_STACK.min_image_stack_fits(fits_glob_pattern, dir)
+            self.source_image_data = stacked_image
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
         elif self.stacking_combo_box.currentText() == "Median":
             stacked_image = IM_STACK.median_stack(fits_glob_pattern, dir)
+            self.source_image_data = stacked_image
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
-
-        elif self.stacking_combo_box.currentText() == "LRGB":
-            pass
-
-        elif self.stacking_combo_box.currentText() == "Narrowband":
-            pass
 
         elif self.stacking_combo_box.currentText() == "Sigma":
             stacked_image = IM_STACK.sigma_stacking(fits_glob_pattern, dir)
+            self.source_image_data = stacked_image
             self.source_image.setPixmap(pixmap_from_cv_image(stacked_image))
 
     def choose_folder_align(self):
@@ -436,9 +434,14 @@ class MainWindow(QMainWindow):
 
     def save_as_file(self):
         if self.result_image_data is None:
-            error_dialog = QErrorMessage()
-            error_dialog.showMessage('No image processed')
-            error_dialog.exec()
+            if self.source_image_data is None:
+                error_dialog = QErrorMessage()
+                error_dialog.showMessage('No image processed')
+                error_dialog.exec()
+            else:
+                filename = QFileDialog.getSaveFileName(self, 'Save File')[0]
+                if len(filename) > 0:
+                    cv2.imwrite(filename, self.source_image_data)
         else:
             filename = QFileDialog.getSaveFileName(self, 'Save File')[0]
             if len(filename) > 0:
