@@ -84,9 +84,6 @@ class MainWindow(QMainWindow):
         self.threshold = 120 # Threshold set to a little darker than 255/2
         self.max_img_height = 400
         self.max_img_width = 600
-        self.histogram_df = pd.DataFrame()
-        self.histogram_canvas1 = MplCanvas(self, width=5, height=4, dpi=100)
-        self.histogram_canvas2 = MplCanvas(self, width=5, height=4, dpi=100)
         self.folder_files = None
 
         select_image_button = QPushButton('Select Image')
@@ -234,28 +231,12 @@ class MainWindow(QMainWindow):
         self.save_button.setFixedWidth(300)
         bottom_bar_layout.addWidget(self.save_button)
 
-        bottom_bar2_layout = QHBoxLayout()
-        bottom_bar2_layout.addWidget(self.show_histograms)
-        bottom_bar2_layout.addWidget(histogram_equal)
-
-        source_hist_layout = QVBoxLayout()
-        source_hist_layout.addWidget(QLabel("Source Histogram:"))
-        # bottom_bar3_layout.addWidget()
-
-        result_hist_layout = QVBoxLayout()
-        result_hist_layout.addWidget(QLabel("Result Histogram:"))
-        # bottom_bar3_layout.addWidget()
-
-        hist_layout.addLayout(source_hist_layout)
-        hist_layout.addLayout(result_hist_layout)
-
         main_layout.addLayout(top_bar_layout)
         main_layout.addLayout(mid_bar_layout)
         main_layout.addLayout(mid2_bar_layout)
         main_layout.addLayout(mid3_bar_layout)
         main_layout.addLayout(image_bar_layout)
         main_layout.addLayout(bottom_bar_layout)
-        main_layout.addLayout(bottom_bar2_layout)
         widget = QWidget()
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
